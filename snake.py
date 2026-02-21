@@ -5,10 +5,10 @@ from collections import deque
 import pygame
 
 #game params
-GRID_W, GRID_H = 10, 10
+GRID_W, GRID_H = 12, 12
 CELL_SIZE = 50
 MARGIN = 2
-FPS = 10
+FPS = 8
 
 WINDOW_W = GRID_W * CELL_SIZE
 WINDOW_H = GRID_H * CELL_SIZE
@@ -70,6 +70,23 @@ def newHeadPos(dir, posX, posY):
         newPosY = posY
     return(newPosX, newPosY)
 
+def spawnFood(snake, lenght):
+    # Build a set of occupied cells (snake positions)
+    occupied = set(snake[:lenght])
+
+    # Fast path: choose from all free cells
+    free_cells = [(x, y) for x in range(GRID_W) for y in range(GRID_H)
+                  if (x, y) not in occupied]
+
+    if not free_cells:
+        return None  # grid is full; you can treat this as "win"
+
+    return random.choice(free_cells)
+
+def randomDirection():
+    x = random.randrange(-1, 1)
+    return x
+    
 def main():
     pygame.init()
     screen = pygame.display.set_mode((WINDOW_W, WINDOW_H))
@@ -78,9 +95,9 @@ def main():
 
     #The snake itself
     snake = []
-    snake.append((2, 0)) #Head
-    snake.append((1, 0))
-    snake.append((0, 0))
+    snake.append((2, 2)) #Head
+    snake.append((1, 2))
+    snake.append((0, 2))
     lenght = 3
 
     #0 = up, 1 = right, 2 = down, 3 = left
@@ -89,7 +106,7 @@ def main():
     trail.append(1)
 
     #Spawn food, TODO make random
-    food = (7, 0)
+    food = (5, 2)
 
     moves = 0
     isDead = False
@@ -108,25 +125,47 @@ def main():
         moves = moves + 1
 
         #Get direction
-        direction = 1#TODO, replace later
-        direction = (direction + trail[0]) % 4
+        #1CW, 0 forward, -1 CCW
+        direction = randomDirection()
+        direction = (direction + trail[0] + 4) % 4
+        newHead = newHeadPos(direction, snake[0][0], snake[0][1])
+        tail = snake[lenght - 1]
+        tT = trail[lenght - 2]
 
         #Move snake
         for i in range(lenght - 1, 0, -1):
             snake[i] = snake[i - 1]
-        snake[0] = newHeadPos(direction, snake[0][0], snake[0][1])
+        snake[0] = newHead
 
+        #Store how it moved
         for i in range(lenght - 2, 0, -1):
             trail[i] = trail[i - 1]
         trail[0] = direction
+
+        #Grow
+        if newHead == food:
+            lenght = lenght + 1
+            snake.append(tail)
+            trail.append(tT)
+    
+            #Respawn food
+            food = spawnFood(snake, lenght)
         
-        #Or grow if it landed on food
-        #Respawn food
-        
-        draw_board(screen, font, list(snake), food, direction)
+        draw_board(screen, font, list(snake), food, moves)
         pygame.display.flip()
         clock.tick(FPS)
 
+        #Out of bounds
+        if (newHead[0] > GRID_W - 1) | (newHead[0] < 0):
+            isDead = True
+        if (newHead[1] > GRID_H - 1)| (newHead[1] < 0):
+            isDead = True
+        
+        #Self Collision
+        for i in range(1, lenght, 1):
+            if snake[0] == snake[i]:
+                isDead = True
+                
         #Check for death
         if isDead:
             break
