@@ -21,36 +21,40 @@ SNAKE_BODY = (10, 60, 10)
 FOOD = (220, 10, 10)
 TEXT = (230, 230, 240)
 
-def draw_board(screen, font, snake, food, moves):
+def draw_board(screen, font, table, moves):
     screen.fill(BG)
-    # grid + cells
+
     for x in range(GRID_W):
         for y in range(GRID_H):
-            r = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-            pygame.draw.rect(screen, GRID_LINE, r, 1)
+            r = pygame.Rect(
+                x * CELL_SIZE + MARGIN,
+                y * CELL_SIZE + MARGIN,
+                CELL_SIZE - 2 * MARGIN,
+                CELL_SIZE - 2 * MARGIN,
+            )
 
-    # snake
-    for i, (sx, sy) in enumerate(snake):
-        r = pygame.Rect(
-            sx * CELL_SIZE + MARGIN,
-            sy * CELL_SIZE + MARGIN,
-            CELL_SIZE - 2 * MARGIN,
-            CELL_SIZE - 2 * MARGIN,
-        )
-        pygame.draw.rect(screen, SNAKE_HEAD if i == 0 else SNAKE_BODY, r, border_radius=8)
+            cell = table[x][y]
 
-    #food
-    fx = food[0]
-    fy = food[1]
-    r = pygame.Rect(
-            fx * CELL_SIZE + MARGIN,
-            fy * CELL_SIZE + MARGIN,
-            CELL_SIZE - 2 * MARGIN,
-            CELL_SIZE - 2 * MARGIN,)
-    pygame.draw.rect(screen, FOOD, r, border_radius=8)
+            if cell == 0:
+                pygame.draw.rect(screen, BG, r)
+            elif cell == -1:
+                pygame.draw.rect(screen, FOOD, r, border_radius=8)
+            elif cell == 1:
+                pygame.draw.rect(screen, SNAKE_HEAD, r, border_radius=8)
+            else:
+                pygame.draw.rect(screen, SNAKE_BODY, r, border_radius=8)
 
+    # Optional: draw grid lines on top
+    for x in range(GRID_W):
+        for y in range(GRID_H):
+            grid_rect = pygame.Rect(
+                x * CELL_SIZE,
+                y * CELL_SIZE,
+                CELL_SIZE,
+                CELL_SIZE,
+            )
+            pygame.draw.rect(screen, GRID_LINE, grid_rect, 1)
 
-    # HUD text (top-left overlay)
     hud = f"moves: {moves}"
     surf = font.render(hud, True, TEXT)
     screen.blit(surf, (8, 8))
@@ -98,7 +102,7 @@ def main():
     snake.append((2, 2)) #Head
     snake.append((1, 2))
     snake.append((0, 2))
-    lenght = 3
+    length = 3
 
     #0 = up, 1 = right, 2 = down, 3 = left
     trail = [] #length of snake -1
@@ -129,29 +133,37 @@ def main():
         direction = randomDirection()
         direction = (direction + trail[0] + 4) % 4
         newHead = newHeadPos(direction, snake[0][0], snake[0][1])
-        tail = snake[lenght - 1]
-        tT = trail[lenght - 2]
+        tail = snake[length - 1]
+        tT = trail[length - 2]
 
         #Move snake
-        for i in range(lenght - 1, 0, -1):
+        for i in range(length - 1, 0, -1):
             snake[i] = snake[i - 1]
         snake[0] = newHead
 
         #Store how it moved
-        for i in range(lenght - 2, 0, -1):
+        for i in range(length - 2, 0, -1):
             trail[i] = trail[i - 1]
         trail[0] = direction
 
         #Grow
         if newHead == food:
-            lenght = lenght + 1
+            length = length + 1
             snake.append(tail)
             trail.append(tT)
     
             #Respawn food
-            food = spawnFood(snake, lenght)
+            food = spawnFood(snake, length)
+
+        #Matrix representation of the board
+        table = [[0 for _ in range(GRID_H)] for _ in range(GRID_W)]
+        table[food[0]][food[1]] = -1
+        for i in range (length):
+            x, y = snake[i]
+            if 0 <= x < GRID_W and 0 <= y < GRID_H:
+                table[x][y] = i + 1
         
-        draw_board(screen, font, list(snake), food, moves)
+        draw_board(screen, font, table, moves)
         pygame.display.flip()
         clock.tick(FPS)
 
@@ -162,7 +174,7 @@ def main():
             isDead = True
         
         #Self Collision
-        for i in range(1, lenght, 1):
+        for i in range(1, length, 1):
             if snake[0] == snake[i]:
                 isDead = True
                 
