@@ -90,12 +90,12 @@ def spawnFood(snake, lenght):
 def randomDirection():
     x = random.randrange(-1, 1)
     return x
-    
-def main():
-    pygame.init()
-    screen = pygame.display.set_mode((WINDOW_W, WINDOW_H))
-    clock = pygame.time.Clock()
-    font = pygame.font.SysFont("consolas", 18)
+
+def playGame(showGame):
+    if showGame:
+        screen = pygame.display.set_mode((WINDOW_W, WINDOW_H))
+        clock = pygame.time.Clock()
+        font = pygame.font.SysFont("consolas", 18)
 
     #The snake itself
     snake = []
@@ -162,10 +162,11 @@ def main():
             x, y = snake[i]
             if 0 <= x < GRID_W and 0 <= y < GRID_H:
                 table[x][y] = i + 1
-        
-        draw_board(screen, font, table, moves)
-        pygame.display.flip()
-        clock.tick(FPS)
+
+        if showGame:
+            draw_board(screen, font, table, moves)
+            pygame.display.flip()
+            clock.tick(FPS)
 
         #Out of bounds
         if (newHead[0] > GRID_W - 1) | (newHead[0] < 0):
@@ -181,6 +182,16 @@ def main():
         #Check for death
         if isDead:
             break
+
+    return moves, length
+        
+def main():
+    pygame.init()
+
+    showGame = True
+    moves, length = playGame(showGame)
+
+    print('moves =', moves, 'eaten apples = ', length - 3)
 
 if __name__ == "__main__":
     main()
