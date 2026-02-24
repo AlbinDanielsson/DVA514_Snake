@@ -5,7 +5,7 @@ from collections import deque
 import pygame
 
 #game params
-GRID_W, GRID_H = 12, 12
+GRID_W, GRID_H = 10, 10
 CELL_SIZE = 50
 MARGIN = 2
 FPS = 8
@@ -88,7 +88,7 @@ def spawnFood(snake, lenght):
     return random.choice(free_cells)
 
 def randomDirection():
-    x = random.randrange(-1, 1)
+    x = random.randrange(-1, 2) #-1, 0 or 1
     return x
 
 def playGame(showGame):
@@ -102,16 +102,21 @@ def playGame(showGame):
     snake.append((2, 2)) #Head
     snake.append((1, 2))
     snake.append((0, 2))
-    length = 3
+    snake.append((0, 1))
+    snake.append((0, 0))
+    length = 5
 
     #0 = up, 1 = right, 2 = down, 3 = left
     trail = [] #length of snake -1
     trail.append(1)
     trail.append(1)
+    trail.append(1)
+    trail.append(1)
 
     #Spawn food, TODO make random
-    food = (5, 2)
+    food = spawnFood(snake, length)
 
+    totalMoves = 0
     moves = 0
     isDead = False
 
@@ -131,6 +136,7 @@ def playGame(showGame):
         #Get direction
         #1CW, 0 forward, -1 CCW
         direction = randomDirection()
+        print('got direction: ', direction)
         direction = (direction + trail[0] + 4) % 4
         newHead = newHeadPos(direction, snake[0][0], snake[0][1])
         tail = snake[length - 1]
@@ -155,6 +161,9 @@ def playGame(showGame):
             #Respawn food
             food = spawnFood(snake, length)
 
+            totalMoves += moves
+            moves = 0
+
         #Matrix representation of the board
         table = [[0 for _ in range(GRID_H)] for _ in range(GRID_W)]
         table[food[0]][food[1]] = -1
@@ -173,6 +182,10 @@ def playGame(showGame):
             isDead = True
         if (newHead[1] > GRID_H - 1)| (newHead[1] < 0):
             isDead = True
+
+        #Missed deadline
+        if moves >= GRID_H * GRID_W:
+            isDead = True
         
         #Self Collision
         for i in range(1, length, 1):
@@ -181,6 +194,7 @@ def playGame(showGame):
                 
         #Check for death
         if isDead:
+            totalMoves += moves
             break
 
     return moves, length
