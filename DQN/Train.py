@@ -1,5 +1,5 @@
 #Run by: python Train.py
-#maybe add: --timesteps 300000 --render True
+#maybe add: --timesteps 300_000 --render True
 import os
 import argparse
 import time

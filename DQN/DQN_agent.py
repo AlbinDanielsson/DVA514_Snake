@@ -17,7 +17,7 @@ class SnakeDqnAgent:
             buffer_size = 100_000,
             learning_starts = 5_000,
             batch_size = 64,
-            gamma = 0.99,
+            gamma = 0.97,
             train_freq = 4,
             target_update_interval = 10_000,
             exploration_fraction = 0.15,

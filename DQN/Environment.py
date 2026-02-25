@@ -93,12 +93,11 @@ class SnakeDqnEnv(gym.Env):
         self.action_space = spaces.Discrete(3)
 
         # Observation: table with values in [-1 .. GRID_W*GRID_H]
-        # We keep your "table[x][y]" representation but return as (GRID_W, GRID_H) int array.
         self.observation_space = spaces.Box(
             low=-1,
             high=GRID_W * GRID_H,
-            shape=(GRID_W, GRID_H),
-            dtype=np.int16,
+            shape=(GRID_W * GRID_H + 1,), #Number of inputs
+            dtype=np.int8
         )
 
         # Pygame rendering
@@ -132,8 +131,9 @@ class SnakeDqnEnv(gym.Env):
         self.table = table
 
     def _get_obs(self):
-        # Convert list-of-lists to numpy array
-        return np.array(self.table, dtype=np.int16)
+        grid = np.asarray(self.table, dtype=np.int8).reshape(-1)   # (100,)
+        moves = np.asarray([self.moves], dtype=np.int8)            # (1,)
+        return np.concatenate([grid, moves])                       # (101,)
 
     def reset(self, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None) -> Tuple[np.ndarray, Dict[str, Any]]:
         super().reset(seed=seed)
@@ -162,6 +162,8 @@ class SnakeDqnEnv(gym.Env):
 
         info = {}
         return self._get_obs(), info
+
+
 
     def step(self, action):
         self.steps += 1
@@ -192,7 +194,8 @@ class SnakeDqnEnv(gym.Env):
             self.trail[i] = self.trail[i - 1]
         self.trail[0] = direction
 
-        reward = 0.0
+        reward = -0.01
+
         terminated = False
         truncated = False
 
@@ -206,7 +209,7 @@ class SnakeDqnEnv(gym.Env):
             self.totalMoves += self.moves
             self.moves = 0
 
-            reward = 1.0
+            reward += 10
 
         # Out of bounds
         if (newHead[0] > GRID_W - 1) or (newHead[0] < 0):
@@ -228,7 +231,7 @@ class SnakeDqnEnv(gym.Env):
         if self.isDead:
             self.totalMoves += self.moves
             terminated = True
-            reward = -1.0
+            reward -= 10
 
         self._build_table()
 
