@@ -102,14 +102,10 @@ def playGame(showGame):
     snake.append((2, 2)) #Head
     snake.append((1, 2))
     snake.append((0, 2))
-    snake.append((0, 1))
-    snake.append((0, 0))
-    length = 5
+    length = 3
 
     #0 = up, 1 = right, 2 = down, 3 = left
     trail = [] #length of snake -1
-    trail.append(1)
-    trail.append(1)
     trail.append(1)
     trail.append(1)
 
@@ -136,7 +132,7 @@ def playGame(showGame):
         #Get direction
         #1CW, 0 forward, -1 CCW
         direction = randomDirection()
-        print('got direction: ', direction)
+
         direction = (direction + trail[0] + 4) % 4
         newHead = newHeadPos(direction, snake[0][0], snake[0][1])
         tail = snake[length - 1]
