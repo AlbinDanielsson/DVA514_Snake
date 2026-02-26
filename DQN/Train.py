@@ -8,8 +8,8 @@ import numpy as np
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv
 
-from Environment import SnakeDqnEnv
-from DQN_agent import SnakeDqnAgent
+from CNN_Environment import SnakeDqnEnv
+from CNN_agent import SnakeDqnAgent
 
 def make_env(render):
     def _thunk():

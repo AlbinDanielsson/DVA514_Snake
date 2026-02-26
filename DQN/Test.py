@@ -4,8 +4,8 @@
 import os
 import argparse
 
-from Environment import SnakeDqnEnv
-from DQN_agent import SnakeDqnAgent
+from CNN_Environment import SnakeDqnEnv
+from CNN_agent import SnakeDqnAgent
 
 def test_snake(model_path, num_episodes, render):
     env = SnakeDqnEnv()

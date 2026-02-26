@@ -21,7 +21,7 @@ class SnakeDqnAgent:
             train_freq = 4,
             target_update_interval = 10_000,
             exploration_fraction = 0.15,
-            exploration_final_eps = 0.05,
+            exploration_final_eps = 0.01,
             policy_kwargs=dict(net_arch= (128, 128)),
         )
 
