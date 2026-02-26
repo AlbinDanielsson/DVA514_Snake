@@ -11,7 +11,7 @@ from gymnasium import spaces
 GRID_W, GRID_H = 10, 10
 CELL_SIZE = 50
 MARGIN = 2
-FPS = 20
+FPS = 10
 
 WINDOW_W = GRID_W * CELL_SIZE
 WINDOW_H = GRID_H * CELL_SIZE
@@ -89,14 +89,19 @@ class SnakeDqnEnv(gym.Env):
     def __init__(self):
         super().__init__()
 
-        # Actions: relative turn (CCW, straight, CW)
+        #Actions  space: relative turn (CCW, straight, CW)
         self.action_space = spaces.Discrete(3)
 
-        # Observation: table with values in [-1 .. GRID_W*GRID_H]
+        #Observarion space
         self.observation_space = spaces.Box(
-            low=-1,
-            high=GRID_W * GRID_H,
-            shape=(GRID_W * GRID_H + 1,), #Number of inputs
+             low = np.concatenate([
+                np.repeat(-1, GRID_H * GRID_W), #The board
+                np.array([0, 0, 0, 0, 0]) #moves, head xy, food xy
+            ]),
+            high = np.concatenate([
+                np.repeat(99, GRID_H * GRID_W), #The board
+                np.array([99, 9, 9, 9, 9]) #moves, head xy, food xy
+            ]),
             dtype=np.int8
         )
 
@@ -131,9 +136,12 @@ class SnakeDqnEnv(gym.Env):
         self.table = table
 
     def _get_obs(self):
-        grid = np.asarray(self.table, dtype=np.int8).reshape(-1)   # (100,)
-        moves = np.asarray([self.moves], dtype=np.int8)            # (1,)
-        return np.concatenate([grid, moves])                       # (101,)
+        grid = np.asarray(self.table, dtype=np.int8).reshape(-1)
+        moves = np.array([self.moves], dtype=np.int8) 
+        head  = np.asarray(self.snake[0], dtype=np.int8).ravel()
+        food  = np.asarray(self.food, dtype=np.int8).ravel()
+
+        return np.concatenate((grid, moves, head, food))                    
 
     def reset(self, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None) -> Tuple[np.ndarray, Dict[str, Any]]:
         super().reset(seed=seed)
