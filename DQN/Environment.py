@@ -96,11 +96,11 @@ class SnakeDqnEnv(gym.Env):
         self.observation_space = spaces.Box(
              low = np.concatenate([
                 np.repeat(-1, GRID_H * GRID_W), #The board
-                np.array([0, 0, 0, 0, 0]) #moves, head xy, food xy
+                np.array([0, 0, 0, 0, 0, 0]) #moves, head xy, food xy, dir
             ]),
             high = np.concatenate([
                 np.repeat(99, GRID_H * GRID_W), #The board
-                np.array([99, 9, 9, 9, 9]) #moves, head xy, food xy
+                np.array([99, 9, 9, 9, 9, 3]) #moves, head xy, food xy, dir
             ]),
             dtype=np.int8
         )
@@ -138,10 +138,11 @@ class SnakeDqnEnv(gym.Env):
     def _get_obs(self):
         grid = np.asarray(self.table, dtype=np.int8).reshape(-1)
         moves = np.array([self.moves], dtype=np.int8) 
+        direction = np.array([self.trail[0]], dtype=np.int8) 
         head  = np.asarray(self.snake[0], dtype=np.int8).ravel()
         food  = np.asarray(self.food, dtype=np.int8).ravel()
 
-        return np.concatenate((grid, moves, head, food))                    
+        return np.concatenate((grid, moves, head, food, direction))                    
 
     def reset(self, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None) -> Tuple[np.ndarray, Dict[str, Any]]:
         super().reset(seed=seed)
