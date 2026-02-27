@@ -159,9 +159,7 @@ class SnakeDqnEnv(gym.Env):
     
         return {"image": img, "state": state}
 
-    def reset(
-        self,
-        seed: Optional[int] = None,
+    def reset(self, seed: Optional[int] = None,
         options: Optional[Dict[str, Any]] = None,
     ) -> Tuple[Dict[str, np.ndarray], Dict[str, Any]]:
         super().reset(seed=seed)
