@@ -76,14 +76,14 @@ class SnakeDqnAgent:
             env,
             verbose = 1,
             learning_rate = 1e-4,
-            buffer_size = 100_000, #used to be 100_000
+            buffer_size = 100_000,
             learning_starts = 2_000,
             batch_size = 64,
             gamma = 0.97,
             train_freq = 4,
             target_update_interval = 5_000,
             exploration_fraction = 0.1,
-            exploration_final_eps = 0.01,
+            exploration_final_eps = 0.05,
             policy_kwargs=dict(
                 features_extractor_class=SmallCombinedExtractor,
                 net_arch=[256, 256],
@@ -102,7 +102,7 @@ class SnakeDqnAgent:
         os.makedirs(save_path, exist_ok=True)
 
         checkpoint_callback = CheckpointCallback(
-            save_freq=50_000,
+            save_freq=200_000,
             save_path=save_path,
             name_prefix=f"{self.name}_model",
             save_replay_buffer=True,

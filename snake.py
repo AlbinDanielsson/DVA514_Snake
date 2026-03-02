@@ -98,7 +98,6 @@ def playGame(showGame):
         font = pygame.font.SysFont("consolas", 18)
 
     length = random.randrange(3, 90)
-    length = 3
     hamilton = [
     (1,0),(2,0),(3,0),(4,0),(5,0),(6,0),(7,0),(8,0),(9,0),
     (9,1),(8,1),(7,1),(6,1),(5,1),(4,1),(3,1),(2,1),(1,1),
@@ -130,7 +129,6 @@ def playGame(showGame):
     ]
     trail = hamiltonDirections[:length-1]
     trail.reverse()
-    print('got lenght:', length, 'head at: ', snake[0])
 
     '''
     #The snake itself

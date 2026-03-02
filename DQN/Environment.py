@@ -24,6 +24,34 @@ SNAKE_BODY = (10, 60, 10)
 FOOD = (220, 10, 10)
 TEXT = (230, 230, 240)
 
+hamiltonDirections = [
+            1, 1, 1, 1, 1, 1, 1, 1, 2,
+            3, 3, 3, 3, 3, 3, 3, 3, 2,
+            1, 1, 1, 1, 1, 1, 1, 1, 2,
+            3, 3, 3, 3, 3, 3, 3, 3, 2,
+            1, 1, 1, 1, 1, 1, 1, 1, 2,
+            3, 3, 3, 3, 3, 3, 3, 3, 2,
+            1, 1, 1, 1, 1, 1, 1, 1, 2,
+            3, 3, 3, 3, 3, 3, 3, 3, 2,
+            1, 1, 1, 1, 1, 1, 1, 1, 2,
+            3, 3, 3, 3, 3, 3, 3, 3, 3,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 1
+        ]
+
+hamilton = [
+        (1,0),(2,0),(3,0),(4,0),(5,0),(6,0),(7,0),(8,0),(9,0),
+        (9,1),(8,1),(7,1),(6,1),(5,1),(4,1),(3,1),(2,1),(1,1),
+        (1,2),(2,2),(3,2),(4,2),(5,2),(6,2),(7,2),(8,2),(9,2),
+        (9,3),(8,3),(7,3),(6,3),(5,3),(4,3),(3,3),(2,3),(1,3),
+        (1,4),(2,4),(3,4),(4,4),(5,4),(6,4),(7,4),(8,4),(9,4),
+        (9,5),(8,5),(7,5),(6,5),(5,5),(4,5),(3,5),(2,5),(1,5),
+        (1,6),(2,6),(3,6),(4,6),(5,6),(6,6),(7,6),(8,6),(9,6),
+        (9,7),(8,7),(7,7),(6,7),(5,7),(4,7),(3,7),(2,7),(1,7),
+        (1,8),(2,8),(3,8),(4,8),(5,8),(6,8),(7,8),(8,8),(9,8),
+        (9,9),(8,9),(7,9),(6,9),(5,9),(4,9),(3,9),(2,9),(1,9),
+        (0,9),(0,8),(0,7),(0,6),(0,5),(0,4),(0,3),(0,2),(0,1),(0,0)
+        ]
+
 
 def draw_board(screen, font, table, moves):
     screen.fill(BG)
@@ -81,6 +109,7 @@ def spawnFood(snake, lenght):
     if not free_cells:
         return None  # grid full => win
     return random.choice(free_cells)
+    
 
 
 class SnakeDqnEnv(gym.Env):
@@ -94,14 +123,17 @@ class SnakeDqnEnv(gym.Env):
 
         #Observarion space
         self.observation_space = spaces.Box(
-             low = np.concatenate([
-                np.repeat(-1, GRID_H * GRID_W), #The board
-                np.array([0, 0, 0, 0, 0, 0]) #moves, head xy, food xy, dir
-            ]),
-            high = np.concatenate([
-                np.repeat(99, GRID_H * GRID_W), #The board
-                np.array([99, 9, 9, 9, 9, 3]) #moves, head xy, food xy, dir
-            ]),
+            low=np.array([
+                0, 0, #Food
+                0, 0, #Head
+                0, 0, #end
+                0, 0]),  #facing, hamilton
+
+            high=np.array([
+                9, 9, #Food
+                9, 9, #Head
+                9, 9, #end
+                3, 3]), #facing hamilton
             dtype=np.int8
         )
 
@@ -135,28 +167,52 @@ class SnakeDqnEnv(gym.Env):
                 table[x][y] = i + 1
         self.table = table
 
-    def _get_obs(self):
-        grid = np.asarray(self.table, dtype=np.int8).reshape(-1)
-        moves = np.array([self.moves], dtype=np.int8) 
-        direction = np.array([self.trail[0]], dtype=np.int8) 
-        head  = np.asarray(self.snake[0], dtype=np.int8).ravel()
-        food  = np.asarray(self.food, dtype=np.int8).ravel()
 
-        return np.concatenate((grid, moves, head, food, direction))                    
+    def _get_obs(self):
+
+        ham = 0  # default if head not found (e.g. out of bounds)
+        for i, pos in enumerate(hamilton):
+            if self.snake[0] == pos:
+                ham = hamiltonDirections[i]
+                break
+
+        tar1 = round((self.length-1)/6)
+        tar2 = round(2*(self.length-1)/6)
+        tar3 = round(3*(self.length-1)/6)
+        tar4 = round(4*(self.length-1)/6)
+        tar5 = round(5*(self.length-1)/6)
+        tar6 = round(6*(self.length-1)/6)
+
+        observation = np.array([
+            self.food[0], self.food[1],
+            self.snake[0][0], self.snake[0][1],
+            self.snake[self.length-1][0], self.snake[self.length-1][1], 
+            self.trail[0], ham,
+        ])
+
+        return observation                    
 
     def reset(self, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None) -> Tuple[np.ndarray, Dict[str, Any]]:
         super().reset(seed=seed)
         if seed is not None:
             random.seed(seed)
             np.random.seed(seed)
+        
+        self.length = random.randrange(3, 90)
+        self.length = 3
+       
+        self.snake = hamilton[:self.length]
+        self.snake.reverse()
 
-        # The snake itself (same as your init)
+        self.trail = hamiltonDirections[:self.length-1]
+        self.trail.reverse()
+        '''
         self.snake = [(2, 2), (1, 2), (0, 2)]  # head first
         self.length = 3
 
         # 0=up,1=right,2=down,3=left ; trail stores absolute direction
         self.trail = [1, 1]
-
+        '''
         self.food = spawnFood(self.snake, self.length)
 
         self.totalMoves = 0
@@ -246,6 +302,9 @@ class SnakeDqnEnv(gym.Env):
 
         if self.visible:
             self.render()
+
+        if self.length == 99:
+            terminated = True
 
         info = {"moves": self.moves, "length": self.length, "totalMoves": self.totalMoves}
         return self._get_obs(), reward, terminated, truncated, info

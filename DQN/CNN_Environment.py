@@ -151,13 +151,32 @@ class SnakeDqnEnv(gym.Env):
         for i in range(1, self.length):
             x, y = self.snake[i]
             if 0 <= x < GRID_W and 0 <= y < GRID_H:
-                img[2, y, x] = 255
+                img[2, y, x] = 20 + (self.length - i) * 2
     
         direction = float(self.trail[0]) / 3.0
         moves_clip = float(min(self.moves, GRID_W * GRID_H)) / float(GRID_W * GRID_H)
         state = np.array([direction, moves_clip], dtype=np.float32)
     
         return {"image": img, "state": state}
+
+    def willCrash(self, turn):
+        deadly = False
+        direction = (turn + self.trail[0] + 4) % 4
+        newHead = newHeadPos(direction, self.snake[0][0], self.snake[0][1])
+
+        # Out of bounds
+        if (newHead[0] > GRID_W - 1) or (newHead[0] < 0):
+            deadly = True
+        if (newHead[1] > GRID_H - 1) or (newHead[1] < 0):
+            deadly = True
+
+        # Self collision
+        for i in range(1, self.length - 1):
+            if newHead == self.snake[i]:
+                deadly = True
+                break
+
+        return deadly
 
     def reset(self, seed: Optional[int] = None,
         options: Optional[Dict[str, Any]] = None,
@@ -167,11 +186,39 @@ class SnakeDqnEnv(gym.Env):
             random.seed(seed)
             np.random.seed(seed)
 
-        self.snake = [(2, 2), (1, 2), (0, 2)]  # head first
+        self.length = random.randrange(3, 90)
         self.length = 3
+        hamilton = [
+        (1,0),(2,0),(3,0),(4,0),(5,0),(6,0),(7,0),(8,0),(9,0),
+        (9,1),(8,1),(7,1),(6,1),(5,1),(4,1),(3,1),(2,1),(1,1),
+        (1,2),(2,2),(3,2),(4,2),(5,2),(6,2),(7,2),(8,2),(9,2),
+        (9,3),(8,3),(7,3),(6,3),(5,3),(4,3),(3,3),(2,3),(1,3),
+        (1,4),(2,4),(3,4),(4,4),(5,4),(6,4),(7,4),(8,4),(9,4),
+        (9,5),(8,5),(7,5),(6,5),(5,5),(4,5),(3,5),(2,5),(1,5),
+        (1,6),(2,6),(3,6),(4,6),(5,6),(6,6),(7,6),(8,6),(9,6),
+        (9,7),(8,7),(7,7),(6,7),(5,7),(4,7),(3,7),(2,7),(1,7),
+        (1,8),(2,8),(3,8),(4,8),(5,8),(6,8),(7,8),(8,8),(9,8),
+        (9,9),(8,9),(7,9),(6,9),(5,9),(4,9),(3,9),(2,9),(1,9),
+        (0,9),(0,8),(0,7),(0,6),(0,5),(0,4),(0,3),(0,2),(0,1),(0,0)
+        ]
+        self.snake = hamilton[:self.length]
+        self.snake.reverse()
 
-        # 0=up,1=right,2=down,3=left ; trail stores absolute direction
-        self.trail = [1, 1]
+        hamiltonDirections = [
+            1, 1, 1, 1, 1, 1, 1, 1, 2,
+            3, 3, 3, 3, 3, 3, 3, 3, 2,
+            1, 1, 1, 1, 1, 1, 1, 1, 2,
+            3, 3, 3, 3, 3, 3, 3, 3, 2,
+            1, 1, 1, 1, 1, 1, 1, 1, 2,
+            3, 3, 3, 3, 3, 3, 3, 3, 2,
+            1, 1, 1, 1, 1, 1, 1, 1, 2,
+            3, 3, 3, 3, 3, 3, 3, 3, 2,
+            1, 1, 1, 1, 1, 1, 1, 1, 2,
+            3, 3, 3, 3, 3, 3, 3, 3, 3,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 1
+        ]
+        self.trail = hamiltonDirections[:self.length-1]
+        self.trail.reverse()
 
         self.food = spawnFood(self.snake, self.length)
 
@@ -200,10 +247,21 @@ class SnakeDqnEnv(gym.Env):
         else:
             turn = 1
 
+        #See if we die moving in the chosen direction, and change if needed
+        if self.willCrash(turn):
+            turn = 0
+            #Yes, try 0
+            if self.willCrash(turn):
+                turn = -1
+                #Still hit, try -1
+                if self.willCrash(turn):
+                    #Still hit try + 1
+                    turn = 1
+        
         # Current heading is trail[0]
         direction = (turn + self.trail[0] + 4) % 4
-
         newHead = newHeadPos(direction, self.snake[0][0], self.snake[0][1])
+
         tail = self.snake[self.length - 1]
         tT = self.trail[self.length - 2]
 
@@ -246,7 +304,7 @@ class SnakeDqnEnv(gym.Env):
 
         # Self collision
         for i in range(1, self.length):
-            if self.snake[0] == self.snake[i]:
+            if newHead == self.snake[i]:
                 self.isDead = True
                 break
 

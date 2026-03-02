@@ -21,8 +21,8 @@ class SnakeDqnAgent:
             train_freq = 4,
             target_update_interval = 10_000,
             exploration_fraction = 0.15,
-            exploration_final_eps = 0.01,
-            policy_kwargs=dict(net_arch= (128, 128)),
+            exploration_final_eps = 0.005,
+            policy_kwargs=dict(net_arch= (32, 32)),
         )
 
     def act(self, observation: np.ndarray, deterministic: bool = True) -> int:

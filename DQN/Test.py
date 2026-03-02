@@ -53,5 +53,6 @@ if __name__ == "__main__":
     parser.add_argument("--episodes", type=int, default=5)
 
     args = parser.parse_args()
+    #args.episodes = 100
 
     test_snake(args.model_path, args.episodes, args.render)
