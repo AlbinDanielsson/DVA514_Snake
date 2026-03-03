@@ -11,7 +11,7 @@ from gymnasium import spaces
 GRID_W, GRID_H = 10, 10
 CELL_SIZE = 50
 MARGIN = 2
-FPS = 10
+FPS = 15
 
 WINDOW_W = GRID_W * CELL_SIZE
 WINDOW_H = GRID_H * CELL_SIZE
@@ -150,8 +150,11 @@ class SnakeDqnEnv(gym.Env):
         # body
         for i in range(1, self.length):
             x, y = self.snake[i]
-            if 0 <= x < GRID_W and 0 <= y < GRID_H:
-                img[2, y, x] = 20 + (self.length - i) * 2
+            img[2, y, x] = 255#20 + (self.length - i) * 2
+            if i == self.length - 1:
+                img[2, y, x] = 125
+
+
     
         direction = float(self.trail[0]) / 3.0
         moves_clip = float(min(self.moves, GRID_W * GRID_H)) / float(GRID_W * GRID_H)
@@ -175,6 +178,10 @@ class SnakeDqnEnv(gym.Env):
             if newHead == self.snake[i]:
                 deadly = True
                 break
+
+        #Running out of time:
+        if abs(newHead[0] - self.food[0]) + abs(newHead[1] - self.food[1]) > 100 - self.moves:
+            deadly = True
 
         return deadly
 
@@ -257,7 +264,7 @@ class SnakeDqnEnv(gym.Env):
                 if self.willCrash(turn):
                     #Still hit try + 1
                     turn = 1
-        
+
         # Current heading is trail[0]
         direction = (turn + self.trail[0] + 4) % 4
         newHead = newHeadPos(direction, self.snake[0][0], self.snake[0][1])
@@ -289,7 +296,7 @@ class SnakeDqnEnv(gym.Env):
             self.totalMoves += self.moves
             self.moves = 0
 
-            reward += 10
+            reward += 1
 
         # Out of bounds
         if (newHead[0] > GRID_W - 1) or (newHead[0] < 0):
