@@ -10,6 +10,7 @@ from CNN_agent import SnakeDqnAgent
 def test_snake(model_path, num_episodes, render):
     env = SnakeDqnEnv()
     env.visible = render
+    env.isTraining = False
     agent = SnakeDqnAgent(env)
 
     if not model_path.endswith(".zip"):

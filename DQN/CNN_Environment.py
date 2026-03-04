@@ -119,6 +119,7 @@ class SnakeDqnEnv(gym.Env):
         self.steps = 0
 
         self.visible = True
+        self.isTraining = True
 
         # Cached table for render
         self.table = None
@@ -153,7 +154,6 @@ class SnakeDqnEnv(gym.Env):
             img[2, y, x] = 255#20 + (self.length - i) * 2
             if i == self.length - 1:
                 img[2, y, x] = 125
-
 
     
         direction = float(self.trail[0]) / 3.0
@@ -193,8 +193,10 @@ class SnakeDqnEnv(gym.Env):
             random.seed(seed)
             np.random.seed(seed)
 
-        self.length = random.randrange(3, 90)
         self.length = 3
+        if self.isTraining:
+            self.length = random.randrange(3, 90)
+            
         hamilton = [
         (1,0),(2,0),(3,0),(4,0),(5,0),(6,0),(7,0),(8,0),(9,0),
         (9,1),(8,1),(7,1),(6,1),(5,1),(4,1),(3,1),(2,1),(1,1),
@@ -253,17 +255,18 @@ class SnakeDqnEnv(gym.Env):
             turn = 0
         else:
             turn = 1
-
+            
+        if not self.isTraining:
         #See if we die moving in the chosen direction, and change if needed
-        if self.willCrash(turn):
-            turn = 0
-            #Yes, try 0
             if self.willCrash(turn):
-                turn = -1
-                #Still hit, try -1
+                turn = 0
+                #Yes, try 0
                 if self.willCrash(turn):
-                    #Still hit try + 1
-                    turn = 1
+                    turn = -1
+                    #Still hit, try -1
+                    if self.willCrash(turn):
+                        #Still hit try + 1
+                        turn = 1
 
         # Current heading is trail[0]
         direction = (turn + self.trail[0] + 4) % 4
