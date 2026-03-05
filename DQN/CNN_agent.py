@@ -10,10 +10,6 @@ from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 
 
 class SmallGridCNN(BaseFeaturesExtractor):
-    """
-    CNN that works on small grids like 10x10.
-    Expects Box space with shape (C,H,W).
-    """
     def __init__(self, observation_space: spaces.Box, features_dim: int = 128):
         super().__init__(observation_space, features_dim)
 

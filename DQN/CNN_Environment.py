@@ -25,6 +25,7 @@ FOOD = (220, 10, 10)
 TEXT = (230, 230, 240)
 
 
+#For testing
 def draw_board(screen, font, table, moves):
     screen.fill(BG)
 
@@ -79,7 +80,7 @@ def spawnFood(snake, lenght):
     occupied = set(snake[:lenght])
     free_cells = [(x, y) for x in range(GRID_W) for y in range(GRID_H) if (x, y) not in occupied]
     if not free_cells:
-        return None  # grid full => win
+        return None
     return random.choice(free_cells)
 
 
@@ -89,19 +90,14 @@ class SnakeDqnEnv(gym.Env):
     def __init__(self):
         super().__init__()
 
-        # Actions: relative turn (CCW, straight, CW)
         self.action_space = spaces.Discrete(3)
 
-        # Dict observation:
-        # - image: (C,H,W) uint8 masks
-        #   channel 0: food, channel 1: head, channel 2: body
-        # - state: small scalars (direction, moves_clipped)
         self.observation_space = spaces.Dict(
             {
                 "image": spaces.Box(low=0, high=255, shape=(3, GRID_H, GRID_W), dtype=np.uint8),
                 "state": spaces.Box(low=0.0, high=1.0, shape=(2,), dtype=np.float32),
             }
-        )
+        )     
 
         # Pygame rendering
         self.screen = None
@@ -136,7 +132,7 @@ class SnakeDqnEnv(gym.Env):
 
     def _get_obs(self):
         img = np.zeros((3, GRID_H, GRID_W), dtype=np.uint8)
-    
+        
         # food
         if self.food is not None:
             fx, fy = self.food
@@ -154,36 +150,36 @@ class SnakeDqnEnv(gym.Env):
             img[2, y, x] = 255#20 + (self.length - i) * 2
             if i == self.length - 1:
                 img[2, y, x] = 125
-
     
         direction = float(self.trail[0]) / 3.0
         moves_clip = float(min(self.moves, GRID_W * GRID_H)) / float(GRID_W * GRID_H)
         state = np.array([direction, moves_clip], dtype=np.float32)
+
+        #Rotate image so the snake is always facing upwards
+        #img = np.rot90(img, -self.trail[0], axes=(1, 2)).copy()
     
         return {"image": img, "state": state}
 
     def willCrash(self, turn):
-        deadly = False
         direction = (turn + self.trail[0] + 4) % 4
         newHead = newHeadPos(direction, self.snake[0][0], self.snake[0][1])
 
         # Out of bounds
         if (newHead[0] > GRID_W - 1) or (newHead[0] < 0):
-            deadly = True
+            return True
         if (newHead[1] > GRID_H - 1) or (newHead[1] < 0):
-            deadly = True
+            return True
 
         # Self collision
         for i in range(1, self.length - 1):
             if newHead == self.snake[i]:
-                deadly = True
-                break
+                return True
 
         #Running out of time:
-        if abs(newHead[0] - self.food[0]) + abs(newHead[1] - self.food[1]) > 100 - self.moves:
-            deadly = True
-
-        return deadly
+        if self.food is not None:
+            if abs(newHead[0] - self.food[0]) + abs(newHead[1] - self.food[1]) > 100 - self.moves:
+                return True
+        
 
     def reset(self, seed: Optional[int] = None,
         options: Optional[Dict[str, Any]] = None,
@@ -286,6 +282,17 @@ class SnakeDqnEnv(gym.Env):
         self.trail[0] = direction
 
         reward = -0.01
+
+        #Straigt line reward
+        if turn == 0:
+            streak = 1
+            for i in range(1, min(self.length - 1, len(self.trail))):
+                if self.trail[i] == self.trail[0]:
+                    streak += 1
+                else:
+                    break
+            reward += 0.03 * streak
+
         terminated = False
         truncated = False
 
