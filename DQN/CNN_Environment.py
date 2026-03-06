@@ -179,7 +179,7 @@ class SnakeDqnEnv(gym.Env):
         if self.food is not None:
             if abs(newHead[0] - self.food[0]) + abs(newHead[1] - self.food[1]) > 100 - self.moves:
                 return True
-        
+            
 
     def reset(self, seed: Optional[int] = None,
         options: Optional[Dict[str, Any]] = None,
@@ -291,7 +291,7 @@ class SnakeDqnEnv(gym.Env):
                     streak += 1
                 else:
                     break
-            reward += 0.03 * streak
+            reward += 0.02 * streak
 
         terminated = False
         truncated = False
