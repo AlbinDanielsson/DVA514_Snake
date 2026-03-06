@@ -330,6 +330,9 @@ class SnakeDqnEnv(gym.Env):
             terminated = True
             reward -= 10
 
+        if self.length == 100:
+            terminated = True
+
         self._build_table()
 
         if self.visible:
