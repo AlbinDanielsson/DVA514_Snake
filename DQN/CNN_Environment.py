@@ -2,6 +2,8 @@ import random
 import sys
 from typing import Optional, Tuple, Dict, Any
 
+from collections import deque
+
 import numpy as np
 import pygame
 import gymnasium as gym
@@ -83,14 +85,13 @@ def spawnFood(snake, lenght):
         return None
     return random.choice(free_cells)
 
-
 class SnakeDqnEnv(gym.Env):
     metadata = {"render_fps": FPS}
 
     def __init__(self):
         super().__init__()
 
-        self.action_space = spaces.Discrete(3)
+        self.action_space = spaces.Discrete(4)
 
         self.observation_space = spaces.Dict(
             {
@@ -249,8 +250,11 @@ class SnakeDqnEnv(gym.Env):
             turn = -1
         elif action == 1:
             turn = 0
-        else:
+        elif action == 2:
             turn = 1
+        else:
+            self.isDead = True
+            turn = 0
             
         if not self.isTraining:
         #See if we die moving in the chosen direction, and change if needed
@@ -331,6 +335,7 @@ class SnakeDqnEnv(gym.Env):
             reward -= 10
 
         if self.length == 100:
+            self.totalMoves += self.moves
             terminated = True
 
         self._build_table()
