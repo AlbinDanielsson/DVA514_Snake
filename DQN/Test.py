@@ -21,8 +21,9 @@ def test_snake(model_path, num_episodes, render):
 
     agent.load(model_path)
 
-    total_reward = 0.0
     total_apples = 0.0
+    wins = 0
+    winTime = 0
 
     for ep in range(num_episodes):
         print(f"\nRunning episode {ep+1}/{num_episodes}")
@@ -40,11 +41,19 @@ def test_snake(model_path, num_episodes, render):
             steps += 1
 
         apples = info.get("length", 3) - 3
-        print(f"Episode {ep+1} finished after {steps} steps | reward={ep_reward:.2f} | apples={apples}")
-        total_reward += ep_reward
+        print(f"Episode {ep+1} finished after {steps} steps | apples={apples}")
         total_apples += apples
+        if apples == 97:
+            wins += 1
+            winTime += steps
+        else:
+            print("Poisoned apple: ", info.get("aX"), info.get("aY")) 
 
-    print("\nAverage number of apples:", total_apples / max(num_episodes, 1))
+
+    print("\nAverage number of apples:", total_apples /num_episodes)
+    print("Winrate:", wins /num_episodes) 
+    print(f"Avg time to win: {winTime / max(1, wins):.1f}")
+
     env.close()
     print("Testing completed")
 

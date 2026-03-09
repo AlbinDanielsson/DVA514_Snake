@@ -253,7 +253,8 @@ class SnakeDqnEnv(gym.Env):
         elif action == 2:
             turn = 1
         else:
-            self.isDead = True
+            if self.isTraining:
+                self.isDead = True
             turn = 0
             
         if not self.isTraining:
@@ -311,7 +312,7 @@ class SnakeDqnEnv(gym.Env):
             self.moves = 0
 
             reward += 1
-
+            
         # Out of bounds
         if (newHead[0] > GRID_W - 1) or (newHead[0] < 0):
             self.isDead = True
@@ -343,7 +344,10 @@ class SnakeDqnEnv(gym.Env):
         if self.visible:
             self.render()
 
-        info = {"moves": self.moves, "length": self.length, "totalMoves": self.totalMoves}
+        if self.food is not None:
+            info = {"moves": self.moves, "length": self.length, "totalMoves": self.totalMoves, "aX": self.food[0], "aY": self.food[1]}
+        else:
+            info = {"moves": self.moves, "length": self.length, "totalMoves": self.totalMoves}
         return self._get_obs(), reward, terminated, truncated, info
 
     def render(self):
