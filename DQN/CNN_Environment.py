@@ -344,10 +344,8 @@ class SnakeDqnEnv(gym.Env):
         if self.visible:
             self.render()
 
-        if self.food is not None:
-            info = {"moves": self.moves, "length": self.length, "totalMoves": self.totalMoves, "aX": self.food[0], "aY": self.food[1]}
-        else:
-            info = {"moves": self.moves, "length": self.length, "totalMoves": self.totalMoves}
+
+        info = {"moves": self.moves, "length": self.length, "totalMoves": self.totalMoves}
         return self._get_obs(), reward, terminated, truncated, info
 
     def render(self):

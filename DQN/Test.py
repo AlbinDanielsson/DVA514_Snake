@@ -46,8 +46,6 @@ def test_snake(model_path, num_episodes, render):
         if apples == 97:
             wins += 1
             winTime += steps
-        else:
-            print("Poisoned apple: ", info.get("aX"), info.get("aY")) 
 
 
     print("\nAverage number of apples:", total_apples /num_episodes)
