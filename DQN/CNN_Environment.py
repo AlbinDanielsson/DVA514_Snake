@@ -12,23 +12,23 @@ from gymnasium import spaces
 # game params
 GRID_W, GRID_H = 10, 10
 CELL_SIZE = 50
-MARGIN = 2
+MARGIN = 0
 FPS = 15
 
 WINDOW_W = GRID_W * CELL_SIZE
 WINDOW_H = GRID_H * CELL_SIZE
 
 # Colors (R,G,B)
-BG = (90, 200, 90)
-GRID_LINE = (40, 40, 48)
-SNAKE_HEAD = (150, 75, 0)
-SNAKE_BODY = (10, 60, 10)
+BG = (0, 0, 0)
+GRID_LINE = (0, 0, 0)
+SNAKE_HEAD = (0, 125, 125)
+SNAKE_BODY = (0, 0, 255)
 FOOD = (220, 10, 10)
 TEXT = (230, 230, 240)
 
 
 #For testing
-def draw_board(screen, font, table, moves):
+def draw_board(screen, font, table, moves, length):
     screen.fill(BG)
 
     for x in range(GRID_W):
@@ -62,7 +62,7 @@ def draw_board(screen, font, table, moves):
             )
             pygame.draw.rect(screen, GRID_LINE, grid_rect, 1)
 
-    hud = f"moves: {moves}"
+    hud = f"moves: {moves}, length: {length}"
     surf = font.render(hud, True, TEXT)
     screen.blit(surf, (8, 8))
 
@@ -365,7 +365,7 @@ class SnakeDqnEnv(gym.Env):
                 self.close()
                 sys.exit(0)
 
-        draw_board(self.screen, self.font, self.table, self.moves)
+        draw_board(self.screen, self.font, self.table, self.totalMoves + self.moves, self.length)
         pygame.display.flip()
         self.clock.tick(self.metadata["render_fps"])
         return None
