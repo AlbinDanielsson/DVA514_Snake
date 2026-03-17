@@ -91,7 +91,7 @@ class SnakeDqnEnv(gym.Env):
     def __init__(self):
         super().__init__()
 
-        self.action_space = spaces.Discrete(4)
+        self.action_space = spaces.Discrete(3)
 
         self.observation_space = spaces.Dict(
             {
